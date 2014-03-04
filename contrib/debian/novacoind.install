@@ -1,0 +1,2 @@
+debian/bin/fluttercoind usr/bin
+src/fluttercoind usr/lib/fluttercoin
