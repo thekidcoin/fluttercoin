@@ -344,6 +344,10 @@ namespace Checkpoints
     // Is the sync-checkpoint outside maturity window?
     bool IsMatureSyncCheckpoint()
     {
+		if (pindexBest->nHeight > 3263)
+	    {
+			nCoinbaseMaturity = nCoinbaseMaturity*2;
+        }
         LOCK(cs_hashSyncCheckpoint);
         // sync-checkpoint should always be accepted block
         assert(mapBlockIndex.count(hashSyncCheckpoint));

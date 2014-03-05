@@ -774,9 +774,15 @@ int CMerkleTx::GetDepthInMainChain(CBlockIndex* &pindexRet) const
 
 int CMerkleTx::GetBlocksToMaturity() const
 {
+	printf("XXX best heigh is: %d", pindexBest->nHeight); //thekicoin
     if (!(IsCoinBase() || IsCoinStake()))
         return 0;
-    return max(0, (nCoinbaseMaturity+20) - GetDepthInMainChain());
+        if (pindexBest->nHeight > 3263)
+        {
+			return max(0, (nCoinbaseMaturity+100) - GetDepthInMainChain()); // increase maturity of mined blocks
+	    }
+        else
+            return max(0, (nCoinbaseMaturity+20) - GetDepthInMainChain());
 }
 
 
@@ -963,6 +969,12 @@ int64 GetProofOfWorkReward(unsigned int nHeight, uint256 hashSeed)
 		int nMaxSubsidy = 5000;
 		int nMinSubsidy = 500;
 
+		if (nHeight > 3263)
+		{
+		    nMaxSubsidy = nMaxSubsidy*2;
+		    nMinSubsidy = nMinSubsidy*2;
+	    }
+
 		if (nHeight < 3679200) // 7 years of random blocks
 		{
 			nMaxSubsidy >>= (nHeight / 525600); // Max subsidy halves yearly
@@ -1041,6 +1053,9 @@ static const int64 nTargetTimespan = 4 * 60 * 60;  // 4 Hours
 // get proof of work blocks max spacing according to hard-coded conditions
 int64 inline GetTargetSpacingWorkMax(int nHeight, unsigned int nTime)
 {
+	printf("XXX From GetTargetSpacingWorkMax height %d\n", pindexBest->nHeight);
+	if (nHeight > 3263)
+	    nStakeTargetSpacing = nStakeTargetSpacing*2;
     if(!fTestNet)
     	return 12 * nStakeTargetSpacing; // 12 minutes
     else
@@ -1055,11 +1070,12 @@ unsigned int ComputeMaxBits(CBigNum bnTargetLimit, unsigned int nBase, int64 nTi
     CBigNum bnResult;
     bnResult.SetCompact(nBase);
     bnResult *= 2;
+
     while (nTime > 0 && bnResult < bnTargetLimit)
     {
         // Maximum 200% adjustment per day...
         bnResult *= 2;
-        nTime -= 24 * 60 * 60;
+        nTime -= 0.16 * 24 * 60 * 60;
     }
     if (bnResult > bnTargetLimit)
         bnResult = bnTargetLimit;
@@ -1113,6 +1129,10 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     // fluttercoin: retarget with exponential moving toward target spacing
     CBigNum bnNew;
     bnNew.SetCompact(pindexPrev->nBits);
+    printf("XXX From GetNextTargetRequired height %d\n", pindexBest->nHeight);
+    if (pindexLast->nHeight+1 > 3263)
+        nStakeTargetSpacing = nStakeTargetSpacing*2;
+
     int64 nTargetSpacing = fProofOfStake? nStakeTargetSpacing : min(GetTargetSpacingWorkMax(pindexLast->nHeight, pindexLast->nTime), (int64) nStakeTargetSpacing * (1 + pindexLast->nHeight - pindexPrev->nHeight));
     int64 nInterval = nTargetTimespan / nTargetSpacing;
     bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
@@ -1362,6 +1382,10 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs, map<uint256, CTx
     // ... both are false when called from CTransaction::AcceptToMemoryPool
     if (!IsCoinBase())
     {
+		if (pindexBest->nHeight > 3263)
+		{
+			nCoinbaseMaturity = nCoinbaseMaturity*2;
+		}
         int64 nValueIn = 0;
         int64 nFees = 0;
         for (unsigned int i = 0; i < vin.size(); i++)
@@ -2844,7 +2868,7 @@ bool LoadBlockIndex(bool fAllowNew)
         nStakeMinAge = 1 * 60 * 60; // test net min age is 2 hours
         nModifierInterval = 20 * 60; // test modifier interval is 20 minutes
         nCoinbaseMaturity = 10; // test maturity is 10 blocks
-        nStakeTargetSpacing = 1 * 60; // test block spacing is 1 minutes
+        nStakeTargetSpacing = 1 * 30; // test block spacing is 1 minutes
     }
     else
     {
@@ -3253,7 +3277,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return true;
         }
 
-        if (pfrom->nVersion < 7000)
+        if (pfrom->nVersion < 70001)
 		{
 		    printf("partner %s using a buggy client %d, disconnecting\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
 		    pfrom->fDisconnect = true;

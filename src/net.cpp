@@ -1151,8 +1151,7 @@ void MapPort()
 // The first name is used as information source for addrman.
 // The second name should resolve to a list of seed addresses.
 static const char *strDNSSeed[][2] = {
-    {"54.203.244.170", "54.203.244.170"},
-    {"54.203.244.27", "54.203.244.27"},
+    {"node1.fluttercoin.us", "dnsseed.fluttercoin.us"},
 };
 
 void ThreadDNSAddressSeed(void* parg)
