@@ -43,10 +43,10 @@ CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 16);
 
 unsigned int nStakeMinAge = 60 * 60 * 24 * 30; // 30 days as zero time weight
 unsigned int nStakeMaxAge = 60 * 60 * 24 * 90; // 90 days as full weight
-unsigned int nStakeTargetSpacing = 1 * 60; // 1-minute stakes spacing
+unsigned int nStakeTargetSpacing = 2 * 60; // 1-minute stakes spacing
 unsigned int nModifierInterval = 4 * 60 * 60; // time to elapse before new modifier is computed
 
-int nCoinbaseMaturity = 6;
+int nCoinbaseMaturity = 12;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 uint256 nBestChainTrust = 0;
@@ -774,15 +774,15 @@ int CMerkleTx::GetDepthInMainChain(CBlockIndex* &pindexRet) const
 
 int CMerkleTx::GetBlocksToMaturity() const
 {
-	printf("XXX best heigh is: %d", pindexBest->nHeight); //thekicoin
+
     if (!(IsCoinBase() || IsCoinStake()))
         return 0;
-        if (pindexBest->nHeight > 3263)
-        {
-			return max(0, (nCoinbaseMaturity+100) - GetDepthInMainChain()); // increase maturity of mined blocks
-	    }
-        else
-            return max(0, (nCoinbaseMaturity+20) - GetDepthInMainChain());
+        //if (pindexBest->nHeight > 3295)
+        //{
+		return max(0, (nCoinbaseMaturity+100) - GetDepthInMainChain()); // increase maturity of mined blocks
+	    //}
+        //else
+            //return max(0, (nCoinbaseMaturity+20) - GetDepthInMainChain());
 }
 
 
@@ -969,7 +969,7 @@ int64 GetProofOfWorkReward(unsigned int nHeight, uint256 hashSeed)
 		int nMaxSubsidy = 5000;
 		int nMinSubsidy = 500;
 
-		if (nHeight > 3263)
+		if (nHeight > 3295)
 		{
 		    nMaxSubsidy = nMaxSubsidy*2;
 		    nMinSubsidy = nMinSubsidy*2;
@@ -1053,9 +1053,7 @@ static const int64 nTargetTimespan = 4 * 60 * 60;  // 4 Hours
 // get proof of work blocks max spacing according to hard-coded conditions
 int64 inline GetTargetSpacingWorkMax(int nHeight, unsigned int nTime)
 {
-	printf("XXX From GetTargetSpacingWorkMax height %d\n", pindexBest->nHeight);
-	if (nHeight > 3263)
-	    nStakeTargetSpacing = nStakeTargetSpacing*2;
+
     if(!fTestNet)
     	return 12 * nStakeTargetSpacing; // 12 minutes
     else
@@ -1075,7 +1073,7 @@ unsigned int ComputeMaxBits(CBigNum bnTargetLimit, unsigned int nBase, int64 nTi
     {
         // Maximum 200% adjustment per day...
         bnResult *= 2;
-        nTime -= 0.16 * 24 * 60 * 60;
+        nTime -= 24 * 60 * 60;
     }
     if (bnResult > bnTargetLimit)
         bnResult = bnTargetLimit;
@@ -1129,9 +1127,6 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     // fluttercoin: retarget with exponential moving toward target spacing
     CBigNum bnNew;
     bnNew.SetCompact(pindexPrev->nBits);
-    printf("XXX From GetNextTargetRequired height %d\n", pindexBest->nHeight);
-    if (pindexLast->nHeight+1 > 3263)
-        nStakeTargetSpacing = nStakeTargetSpacing*2;
 
     int64 nTargetSpacing = fProofOfStake? nStakeTargetSpacing : min(GetTargetSpacingWorkMax(pindexLast->nHeight, pindexLast->nTime), (int64) nStakeTargetSpacing * (1 + pindexLast->nHeight - pindexPrev->nHeight));
     int64 nInterval = nTargetTimespan / nTargetSpacing;
@@ -1382,10 +1377,7 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs, map<uint256, CTx
     // ... both are false when called from CTransaction::AcceptToMemoryPool
     if (!IsCoinBase())
     {
-		if (pindexBest->nHeight > 3263)
-		{
-			nCoinbaseMaturity = nCoinbaseMaturity*2;
-		}
+
         int64 nValueIn = 0;
         int64 nFees = 0;
         for (unsigned int i = 0; i < vin.size(); i++)
@@ -2386,7 +2378,7 @@ bool CBlock::AcceptBlock()
     int nHeight = pindexPrev->nHeight+1;
 
     // Check proof-of-work or proof-of-stake
-    if (nBits != GetNextTargetRequired(pindexPrev, IsProofOfStake()))
+    if (nBits != GetNextTargetRequired(pindexPrev, IsProofOfStake()) && nHeight != 3263 && nHeight != 3264 && nHeight != 3265)
         return DoS(100, error("AcceptBlock() : incorrect %s", IsProofOfWork() ? "proof-of-work" : "proof-of-stake"));
 
     // Check timestamp against prev
@@ -3277,7 +3269,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return true;
         }
 
-        if (pfrom->nVersion < 70001)
+        if (pfrom->nVersion < 70002)
 		{
 		    printf("partner %s using a buggy client %d, disconnecting\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
 		    pfrom->fDisconnect = true;
