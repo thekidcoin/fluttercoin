@@ -2378,7 +2378,7 @@ bool CBlock::AcceptBlock()
     int nHeight = pindexPrev->nHeight+1;
 
     // Check proof-of-work or proof-of-stake
-    if (nBits != GetNextTargetRequired(pindexPrev, IsProofOfStake()) && nHeight != 3263 && nHeight != 3264 && nHeight != 3265)
+    if (nBits != GetNextTargetRequired(pindexPrev, IsProofOfStake()) && nHeight < 3280)
         return DoS(100, error("AcceptBlock() : incorrect %s", IsProofOfWork() ? "proof-of-work" : "proof-of-stake"));
 
     // Check timestamp against prev
