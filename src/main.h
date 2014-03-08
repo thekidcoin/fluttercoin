@@ -35,11 +35,10 @@ static const unsigned int MAX_INV_SZ = 50000;
 static const int64 MIN_TX_FEE = CENT;
 static const int64 MIN_RELAY_TX_FEE = CENT;
 static const int64 MAX_MONEY = 50000000000LL * COIN;
-static const int64 MAX_MINT_PROOF_OF_WORK = 5000 * COIN;
+static const int64 MAX_MINT_PROOF_OF_WORK = 10000 * COIN;
 static const int64 MAX_MINT_PROOF_OF_STAKE = 1 * COIN;
 static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 static const unsigned int ENTROPY_SWITCH_TIME = 1420070399; // Dec 31 2014, 23:59:59 PM GMT
-static const unsigned int STAKE_SWITCH_TIME = 1394193600; // March 7 12:00:00 GMT
 
 string SearchTerm(const char *chAddress);
 bool fAddrMiner (const char *chHash, const char *chTerm);
@@ -588,7 +587,7 @@ public:
     {
         // Large (in bytes) low-priority (new, small-coin) transactions
         // need a fee.
-        return dPriority > COIN * 1440 / 250;
+        return dPriority > COIN * 720 / 250;
     }
 
     int64 GetMinFee(unsigned int nBlockSize=1, bool fAllowFree=false, enum GetMinFee_mode mode=GMF_BLOCK, unsigned int nBytes = 0) const;

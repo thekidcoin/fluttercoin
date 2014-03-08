@@ -777,12 +777,9 @@ int CMerkleTx::GetBlocksToMaturity() const
 
     if (!(IsCoinBase() || IsCoinStake()))
         return 0;
-        //if (pindexBest->nHeight > 3295)
-        //{
-		return max(0, (nCoinbaseMaturity+100) - GetDepthInMainChain()); // increase maturity of mined blocks
-	    //}
-        //else
-            //return max(0, (nCoinbaseMaturity+20) - GetDepthInMainChain());
+
+    return max(0, (nCoinbaseMaturity+100) - GetDepthInMainChain()); // increase maturity of mined blocks
+
 }
 
 
@@ -1071,9 +1068,9 @@ unsigned int ComputeMaxBits(CBigNum bnTargetLimit, unsigned int nBase, int64 nTi
 
     while (nTime > 0 && bnResult < bnTargetLimit)
     {
-        // Maximum 200% adjustment per day...
+        // Maximum 200% adjustment per 4 hours
         bnResult *= 2;
-        nTime -= 24 * 60 * 60;
+        nTime -= 4 * 60 * 60;
     }
     if (bnResult > bnTargetLimit)
         bnResult = bnTargetLimit;
@@ -1825,7 +1822,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
 	// Check coinbase reward
 	if (vtx[0].GetValueOut() > nReward)
-	    return DoS(50, error("CheckBlock() : coinbase reward exceeded (actual=%"PRI64d" vs calculated=%"PRI64d") at Height=%d", vtx[0].GetValueOut(), nReward, pindex->pprev->nHeight+1));
+	    return DoS(50, error("ConnectBlock() : coinbase reward exceeded (actual=%"PRI64d" vs calculated=%"PRI64d") at Height=%d", vtx[0].GetValueOut(), nReward, pindex->pprev->nHeight+1));
 
     if (!pindex->IsProofOfStake() && !pindex->pprev->IsProofOfStake())
     {
@@ -2306,22 +2303,13 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
             return DoS(100, error("CheckBlock() : bad proof-of-stake block signature"));
     }
 
-/*
-    // Should we check proof-of-work block signature or not?
-    //
-    // * Always skip on TestNet
-    // * Perform checking for the first 25,000 blocks
-    // * Perform checking since last checkpoint
-
-    if(!fTestNet && fCheckSig)
+    else
     {
-       bool checkEntropySig = (GetBlockTime() < ENTROPY_SWITCH_TIME);
-
-        // FlutterCoin: check proof-of-work block signature
-        if (checkEntropySig && !CheckBlockSignature(false))
-            return DoS(100, error("CheckBlock() : bad proof-of-work block signature"));
+	    // Check coinbase reward is not 0
+	    if (vtx[0].GetValueOut() == 0 && GetHash() != hashGenesisBlock)
+	        return DoS(50, error("CheckBlock() : 0 value block bad chain (actual=%"PRI64d")", vtx[0].GetValueOut()));
     }
-*/
+
 
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, vtx)
@@ -3236,11 +3224,30 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         CAddress addrMe;
         CAddress addrFrom;
         uint64 nNonce = 1;
+        bool badVersion = false;
         vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe;
         if (pfrom->nVersion < MIN_PROTO_VERSION)
         {
             // Since February 20, 2012, the protocol is initiated at version 209,
             // and earlier versions are no longer supported
+            printf("partner %s using obsolete version %i; disconnecting\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
+            pfrom->fDisconnect = true;
+            return false;
+        }
+
+        if(nTime < 1394409600) // Mon, 10 Mar 2014 00:00:00 GMT
+        {
+            if(pfrom->nVersion < 70002)
+                badVersion = true;
+        }
+        else
+        {
+            if(pfrom->nVersion < 70003)
+                badVersion = true;
+        }
+
+        if(badVersion)
+        {
             printf("partner %s using obsolete version %i; disconnecting\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
             pfrom->fDisconnect = true;
             return false;
