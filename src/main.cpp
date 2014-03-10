@@ -972,10 +972,10 @@ int64 GetProofOfWorkReward(unsigned int nHeight, uint256 hashSeed)
 		    nMinSubsidy = nMinSubsidy*2;
 	    }
 
-		if (nHeight < 3679200) // 7 years of random blocks
+		if (nHeight < 1839600) // 7 years of random blocks
 		{
-			nMaxSubsidy >>= (nHeight / 525600); // Max subsidy halves yearly
-			nMinSubsidy >>= (nHeight / 525600); // Min subsidy halves yearly
+			nMaxSubsidy >>= (nHeight / 262800); // Max subsidy halves yearly
+			nMinSubsidy >>= (nHeight / 262800); // Min subsidy halves yearly
 			nBlockValue = StartDigging(lSeed, nMinSubsidy, nMaxSubsidy);
 		}
 		else

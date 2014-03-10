@@ -32,8 +32,8 @@ static const int DATABASE_VERSION = 70507;
 
 static const int PROTOCOL_VERSION = 70003;
 
-// earlier versions not supported as of Feb 2012, and are disconnected
-static const int MIN_PROTO_VERSION = 70002;
+// earlier versions not supported and are disconnected
+static const int MIN_PROTO_VERSION = 70003;
 
 // nTime field added to CAddress, starting with this version;
 // if possible, avoid requesting addresses nodes older than this
@@ -41,7 +41,7 @@ static const int CADDR_TIME_VERSION = 70000;
 
 // only request blocks from nodes outside this range of versions
 static const int NOBLKS_VERSION_START = 1;
-static const int NOBLKS_VERSION_END = 70001;
+static const int NOBLKS_VERSION_END = 70002;
 
 // BIP 0031, pong message, is enabled for all versions AFTER this one
 static const int BIP0031_VERSION = 69999;
@@ -52,6 +52,6 @@ static const int MEMPOOL_GD_VERSION = 70000;
 #define DISPLAY_VERSION_MAJOR       0
 #define DISPLAY_VERSION_MINOR       4
 #define DISPLAY_VERSION_REVISION    5
-#define DISPLAY_VERSION_BUILD       0
+#define DISPLAY_VERSION_BUILD       1
 
 #endif
