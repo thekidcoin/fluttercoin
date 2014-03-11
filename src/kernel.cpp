@@ -391,7 +391,7 @@ bool CheckStakeModifierCheckpoints(int nHeight, unsigned int nStakeModifierCheck
     MapModifierCheckpoints& checkpoints = (fTestNet ? mapStakeModifierCheckpointsTestNet : mapStakeModifierCheckpoints);
 
     if (checkpoints.count(nHeight)){
-        cout << nStakeModifierChecksum << " == or != " << checkpoints[nHeight] << endl; // thekidcoin
+        //cout << nStakeModifierChecksum << " == or != " << checkpoints[nHeight] << endl; // thekidcoin
         return nStakeModifierChecksum == checkpoints[nHeight];
     }
     return true;
