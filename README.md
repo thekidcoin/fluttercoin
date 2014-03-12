@@ -10,17 +10,17 @@ Such is the design of Flutter Coin. Proof of Block Mining (POB) - a feature only
 ample, someone sending 1000 FLT to an ecommerce site for 1 widget, could be rewarded 2000 FLT via POB, enabling this person to possibly buy an additional 2
 widgets, thus enabling the ecommerce site owner to use the proceeds to buy goods or services from another party, and the ripple effects continue... 
 
-Random Proof-Of-Work Mining (POW) Rewards (halving every 525,600 blocks)
-
-	Year #	MIN	MAX			
-	Year 1:	500	5000
-	Year 2: 250	2500
-	Year 3:	125	1250
-	Year 4:	 62	 625
-	Year 5:  31	 312
-	Year 6:	 15	 156
-	Year 7:	  7	  78	
-	Year 8 on: 50
+Random Proof-Of-Work Mining (POW) Rewards (halving every 262,800 blocks)
+             MAX  MIN
+    Year 1: 1000 10000*
+    Year 2:  500 5000
+    Year 3:  250 2500
+    Year 4:  124 1250
+    Year 5:   62 624
+    Year 6:   30 312
+    Year 7:   14 156
+    Year 8 on: 50
+*(prior to block 3263: 500 5000)
 	
 There is no maximum number of coins, proof of work for the first 7 years is roughly a minimum 500 million and maximum 5 billion.
 
@@ -51,6 +51,7 @@ Build Dependencies - Please to not use other versions
 - "boost-mingw-gas-cross-compile-2013-03-03.patch"
 - "qt-everywhere-opensource-src-4.8.3.tar.gz"
 
+NOTE: For building on Linux, use the file makefile.linux (not the traditional makefile.unix)
 
 
 
