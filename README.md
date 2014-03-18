@@ -2,12 +2,12 @@ Flutter Coin (FLT)
 
 Scrypt Proof of Work/Proof of Stake Hybrid with Address Hash Mining
 
-Earn Flutter Coins through Proof-Of-Work, Proof-Of-Stake, or Proof-Of-Block mining.
+Earn Flutter Coins through Proof-Of-Work, Proof-Of-Stake, or Proof-Of-Transaction mining.
 
 Butterfly Effect: The phenomenon whereby a minute localized change in a complex system can have large effects elsewhere.
 
-Such is the design of Flutter Coin. Proof of Block Mining (POB) - a feature only found in Flutter Coin, creates more opportunity for such chaos. For ex-
-ample, someone sending 1000 FLT to an ecommerce site for 1 widget, could be rewarded 2000 FLT via POB, enabling this person to possibly buy an additional 2
+Such is the design of Flutter Coin. Proof of Block Mining (POT) - a feature only found in Flutter Coin, creates more opportunity for such chaos. For ex-
+ample, someone sending 1000 FLT to an ecommerce site for 1 widget, could be rewarded 2000 FLT via POT, enabling this person to possibly buy an additional 2
 widgets, thus enabling the ecommerce site owner to use the proceeds to buy goods or services from another party, and the ripple effects continue... 
 
 Random Proof-Of-Work Mining (POW) Rewards (halving every 262,800 blocks)
@@ -26,9 +26,9 @@ There is no maximum number of coins, proof of work for the first 7 years is roug
 
 Proof-Of-Stake Mining (POS) - variable interest based on coin age
 
-Proof-of-Block Mining (POB) - Mining by matching address segment to block hash (on tansactions greater than 500 coins), 50% of the block subsidy
+Proof-Of-Transaction Mining (POT) - Mining by matching address segment to block hash (on tansactions greater than 500 coins), 50% of the block subsidy
 
-Increased security on Proof-of-Work blocks though verification of coinbase tx value, size, and destinations of coinbase transactions via Proof-of-Block checking.
+Increased security on Proof-of-Work blocks though verification of coinbase tx value, size, and destinations of coinbase transactions via Proof-Of-Transaction checking.
 
 Default P2P Port: 7408
 Default RPC Port: 7474

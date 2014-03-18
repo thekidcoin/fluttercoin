@@ -1050,11 +1050,13 @@ static const int64 nTargetTimespan = 4 * 60 * 60;  // 4 Hours
 // get proof of work blocks max spacing according to hard-coded conditions
 int64 inline GetTargetSpacingWorkMax(int nHeight, unsigned int nTime)
 {
+    if(nTime > 1395165600)
+        return 3 * nStakeTargetSpacing; // 6 limit block time to 6 minutes
 
-    if(!fTestNet)
-    	return 12 * nStakeTargetSpacing; // 12 minutes
-    else
+    if(fTestNet)
         return 3 * nStakeTargetSpacing; // 6 minutes on testNet
+
+    return 12 * nStakeTargetSpacing; // 24 mins otherwise
 }
 
 //
