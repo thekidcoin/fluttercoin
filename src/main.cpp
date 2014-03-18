@@ -1824,7 +1824,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 	if (vtx[0].GetValueOut() > nReward)
 	    return DoS(50, error("ConnectBlock() : coinbase reward exceeded (actual=%"PRI64d" vs calculated=%"PRI64d") at Height=%d", vtx[0].GetValueOut(), nReward, pindex->pprev->nHeight+1));
 
-    if (!pindex->IsProofOfStake() && !pindex->pprev->IsProofOfStake())
+    if (pindex->pprev->nHeight+1 > 12400 && !pindex->IsProofOfStake() && !pindex->pprev->IsProofOfStake() && (pindex->GetBlockTime() - pindex->pprev->GetBlockTime()) < 300 && vtx.size() < 6)
     {
         std::vector < boost::tuple<unsigned int, int64, CBitcoinAddress> > vTrans;
 	    for(unsigned int i = 0; i < vtx[0].vout.size(); i++)
@@ -1847,6 +1847,29 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 	         return DoS(50, error("CheckCoinbaseTx() : calculated coinbase, desination, or address do not match the actual block at height %"PRI64d"\n", pindex->pprev->nHeight+1));
 	    }
     }
+    else if (pindex->pprev->nHeight+1 <= 12400 && !pindex->IsProofOfStake() && !pindex->pprev->IsProofOfStake())
+    {
+        std::vector < boost::tuple<unsigned int, int64, CBitcoinAddress> > vTrans;
+		for(unsigned int i = 0; i < vtx[0].vout.size(); i++)
+		{
+		    const CTxOut& txout = vtx[0].vout[i];
+			txnouttype type;
+			vector<CTxDestination> vAddresses;
+			int nRequired;
+			ExtractDestinations(txout.scriptPubKey, type, vAddresses, nRequired);
+
+			BOOST_FOREACH(const CTxDestination& addr, vAddresses)
+			{
+			    boost::tuple<unsigned int, int64, CBitcoinAddress> cTrans = boost::make_tuple(pindex->pprev->nHeight, txout.nValue, CBitcoinAddress(addr));
+			    vTrans.push_back(cTrans);
+			}
+        }
+
+        if (!CheckProofOfTxSearch(vTrans))
+		{
+		    return DoS(50, error("CheckCoinbaseTx() : calculated coinbase, desination, or address do not match the actual block at height %"PRI64d"\n", pindex->pprev->nHeight+1));
+	    }
+	}
 
     // Watch for transactions paying to me
     BOOST_FOREACH(CTransaction& tx, vtx)
@@ -3235,10 +3258,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return false;
         }
 
-        if(nTime < 1394409600) // Mon, 10 Mar 2014 00:00:00 GMT
-        {
-            if(pfrom->nVersion < 70002)
-                badVersion = true;
+        if(nTime > 1395165600) // Tue, 18 Mar 2014 18:00:00 GMT
+		{
+		    if(pfrom->nVersion < 70004)
+		        badVersion = true;
         }
         else
         {
