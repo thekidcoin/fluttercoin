@@ -135,14 +135,97 @@ ProofOfTx ProofOfTxSearch(unsigned int nBlockHeight, CReserveKey pubKey)
 	CMerkleTx txGen(block.vtx[0]);
 	txGen.SetMerkleBranch(&block);
 
-	if (nBlockHeight+1 > 12400 && block.vtx.size() > 5)
+    if (!fMatch && nBlockHeight+1 > 22000 && block.vtx.size() < 11)
+	{
+        BOOST_FOREACH (const CTransaction& tx, block.vtx)
+        {
+		    if (tx.vout.size() < 11)
+		    {
+		        for (unsigned int i = 0; i < tx.vout.size(); i++)
+			    {
+				   const CTxOut& txout = tx.vout[i];
+
+				   if (txout.nValue / 1000000.00 > 500)
+				   {
+				       txnouttype type;
+				       vector<CTxDestination> vAddresses;
+				       int nRequired;
+
+				       ExtractDestinations(txout.scriptPubKey, type, vAddresses, nRequired);
+
+				       BOOST_FOREACH(const CTxDestination& addr, vAddresses)
+				       {
+					       const char* pszAddress = CBitcoinAddress(addr).ToString().c_str();
+					       CScript addrHex = CScript() << vector<unsigned char>((const unsigned char*)pszAddress, (const unsigned char*)pszAddress + strlen(pszAddress));
+					       string strSearch = SearchTerm(addrHex.ToString().c_str());
+
+					       if (fAddrMiner(hashLastBlock.GetHex().c_str(), strSearch.c_str()))
+				 	       {
+							   addrMiner = CBitcoinAddress(addr);
+						       fMatch = true;
+						   }
+					       else
+					       {
+							   fMatch = false;
+							   CKeyID keyID = pubKey.GetReservedKey().GetID();
+					           addrMiner.Set(keyID);
+                           }
+				       }
+			       }
+			    }
+		    }
+		    else
+		    {
+		        for (unsigned int i = 0; i < 5; i++)
+			    {
+				   const CTxOut& txout = tx.vout[i];
+
+				   if (txout.nValue / 1000000.00 > 500)
+				   {
+				       txnouttype type;
+				       vector<CTxDestination> vAddresses;
+				       int nRequired;
+
+				       ExtractDestinations(txout.scriptPubKey, type, vAddresses, nRequired);
+
+				       BOOST_FOREACH(const CTxDestination& addr, vAddresses)
+				       {
+					       const char* pszAddress = CBitcoinAddress(addr).ToString().c_str();
+					       CScript addrHex = CScript() << vector<unsigned char>((const unsigned char*)pszAddress, (const unsigned char*)pszAddress + strlen(pszAddress));
+					       string strSearch = SearchTerm(addrHex.ToString().c_str());
+
+					       if (fAddrMiner(hashLastBlock.GetHex().c_str(), strSearch.c_str()))
+				 	       {
+							   addrMiner = CBitcoinAddress(addr);
+						       fMatch = true;
+						   }
+					       else
+					       {
+							   fMatch = false;
+							   CKeyID keyID = pubKey.GetReservedKey().GetID();
+					           addrMiner.Set(keyID);
+                           }
+				       }
+			       }
+			    }
+			}
+        }
+    }
+    else if (!fMatch && nBlockHeight+1 > 22000 && block.vtx.size() > 10)
+    {
+		CKeyID keyID = pubKey.GetReservedKey().GetID();
+	    addrMiner.Set(keyID);
+
+        return boost::make_tuple(false, addrMiner);
+	}
+	else if (nBlockHeight+1 > 12400 && nBlockHeight+1 < 22001 && block.vtx.size() > 5)
 	{
 		CKeyID keyID = pubKey.GetReservedKey().GetID();
 		addrMiner.Set(keyID);
 
         return boost::make_tuple(false, addrMiner);
     }
-    else if (!fMatch && nBlockHeight+1 > 12400 && block.vtx.size() < 6)
+    else if (!fMatch && nBlockHeight+1 > 12400 && nBlockHeight+1 < 22001 && block.vtx.size() < 6)
     {
 	    BOOST_FOREACH (const CTransaction& tx, block.vtx)
 	    {

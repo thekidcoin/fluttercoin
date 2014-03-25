@@ -13,6 +13,8 @@
 using namespace json_spirit;
 using namespace std;
 
+extern void ScriptPubKeyToJSON(const CScript& scriptPubKey, Object& out, bool fIncludeHex);
+
 Value getsubsidy(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 1)
@@ -322,6 +324,8 @@ Value getblocktemplate(const Array& params, bool fHelp)
             "  \"previousblockhash\" : hash of current highest block\n"
             "  \"transactions\" : contents of non-coinbase transactions that should be included in the next block\n"
             "  \"coinbaseaux\" : data that should be included in coinbase\n"
+            "  \"proofoftx\" : proof-of-transaction value"
+            "  \"proofoftxwinner\" : proof-of-transaction winner"
             "  \"coinbasevalue\" : maximum allowable input to coinbase transaction, including the generation award and transaction fees\n"
             "  \"target\" : hash target\n"
             "  \"mintime\" : minimum timestamp appropriate for next block\n"
@@ -455,7 +459,24 @@ Value getblocktemplate(const Array& params, bool fHelp)
     result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
     result.push_back(Pair("transactions", transactions));
     result.push_back(Pair("coinbaseaux", aux));
-    result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].vout[0].nValue));
+    //result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].vout[0].nValue));
+
+    if (pblock->vtx[0].vout.size() > 1)
+    {
+		const CTxOut& txout =  pblock->vtx[0].vout[1];
+		Object script;
+		ScriptPubKeyToJSON(txout.scriptPubKey, script, true);
+	    result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].vout[0].nValue + (int64_t)pblock->vtx[0].vout[1].nValue));
+	    result.push_back(Pair("proofoftx", (int64_t)pblock->vtx[0].vout[1].nValue));
+	    result.push_back(Pair("proofoftxwinner", script));
+	}
+	else
+    {
+        result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].vout[0].nValue));
+        result.push_back(Pair("proofoftx", (int64_t)0));
+        result.push_back(Pair("proofoftxwinner", 0));
+    }
+
     result.push_back(Pair("target", hashTarget.GetHex()));
     result.push_back(Pair("mintime", (int64_t)pindexPrev->GetMedianTimePast()+1));
     result.push_back(Pair("mutable", aMutable));

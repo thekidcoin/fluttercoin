@@ -1,28 +1,30 @@
 Flutter Coin (FLT)
 
-Scrypt Proof of Work/Proof of Stake Hybrid with Address Hash Mining
+Scrypt Proof of Work/Proof of Stake Hybrid with Proof-of-Transaction
 
 Earn Flutter Coins through Proof-Of-Work, Proof-Of-Stake, or Proof-Of-Transaction mining.
 
 Butterfly Effect: The phenomenon whereby a minute localized change in a complex system can have large effects elsewhere.
 
-Such is the design of Flutter Coin. Proof of Block Mining (POT) - a feature only found in Flutter Coin, creates more opportunity for such chaos. For ex-
+Such is the design of Flutter Coin. Proof-of-Transaction (POT) - a feature only found in Flutter Coin, creates more opportunity for such chaos. For ex-
 ample, someone sending 1000 FLT to an ecommerce site for 1 widget, could be rewarded 2000 FLT via POT, enabling this person to possibly buy an additional 2
 widgets, thus enabling the ecommerce site owner to use the proceeds to buy goods or services from another party, and the ripple effects continue... 
 
 Random Proof-Of-Work Mining (POW) Rewards (halving every 262,800 blocks)
              MAX  MIN
-    Year 1: 1000 10000*
-    Year 2:  500 5000
-    Year 3:  250 2500
-    Year 4:  124 1250
-    Year 5:   62 624
-    Year 6:   30 312
-    Year 7:   14 156
+    Block 1 - 3263: Random 500 5000 (1 minute blocks)
+    Block 3264 - 22000: Random 1000 10000 (Begin 2 minute blocks)
+    Year 1:  5000.00
+    Year 2:  2500.00
+    Year 3:  1250.00
+    Year 4:  625.00
+    Year 5:  312.50
+    Year 6:  156.25
+    Year 7:  78.125
     Year 8 on: 50
-*(prior to block 3263: 500 5000)
+
 	
-There is no maximum number of coins, proof of work for the first 7 years is roughly a minimum 500 million and maximum 5 billion.
+There is no maximum number of coins, proof of work for the first 7 years is roughly a maximum 2.6 billion FLT.
 
 Proof-Of-Stake Mining (POS) - variable interest based on coin age
 

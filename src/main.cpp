@@ -965,20 +965,27 @@ int64 GetProofOfWorkReward(unsigned int nHeight, uint256 hashSeed)
 		int nBlockValue = 0;
 		int nMaxSubsidy = 5000;
 		int nMinSubsidy = 500;
+		int nFlatSubsidy = 5000;
 
-		if (nHeight > 3295)
+		if (nHeight > 3295 && nHeight < 22001)
 		{
 		    nMaxSubsidy = nMaxSubsidy*2;
 		    nMinSubsidy = nMinSubsidy*2;
 	    }
 
-		if (nHeight < 1839600) // 7 years of random blocks
+		if (nHeight < 22001) // 7 years of random blocks
 		{
 			nMaxSubsidy >>= (nHeight / 262800); // Max subsidy halves yearly
 			nMinSubsidy >>= (nHeight / 262800); // Min subsidy halves yearly
 			nBlockValue = StartDigging(lSeed, nMinSubsidy, nMaxSubsidy);
 		}
-		else
+
+	    if (nHeight < 1839600 && nHeight > 22000) // 7 years of random blocks
+		{
+            nFlatSubsidy >>= (nHeight / 262800); // Max subsidy halves yearly
+            nBlockValue = nFlatSubsidy;
+		}
+		else if (nHeight >= 1839600)
 		{
 			nBlockValue = 50; // reward of 50 coins for life
 		}
@@ -1203,14 +1210,6 @@ void CBlock::UpdateTime(const CBlockIndex* pindexPrev)
 {
     nTime = max(GetBlockTime(), GetAdjustedTime());
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -1626,43 +1625,118 @@ bool CheckProofOfTxSearch(std::vector<boost::tuple<unsigned int, int64, CBitcoin
 	txGen.SetMerkleBranch(&block);
 	nCalcValue = (GetProofOfWorkReward(nBlockHeight+1, hashLastBlock));
 
-	if (!fMatch && nBlockHeight > 0)
+	if (!fMatch && block.vtx.size() < 11 && nBlockHeight+1 > 22000)
 	{
-	    BOOST_FOREACH (const CTransaction& tx, block.vtx)
-	    {
-	        for (unsigned int i = 0; i < tx.vout.size(); i++)
-		    {
-			    const CTxOut& txout = tx.vout[i];
+        BOOST_FOREACH (const CTransaction& tx, block.vtx)
+		{
+			if (tx.vout.size() < 11)
+			{
+		        for (unsigned int i = 0; i < tx.vout.size(); i++)
+		        {
+			        const CTxOut& txout = tx.vout[i];
 
-			    if (txout.nValue / 1000000 > 500)
-			    {
-			        txnouttype type;
-			        vector<CTxDestination> vAddresses;
-			        int nRequired;
-			        ExtractDestinations(txout.scriptPubKey, type, vAddresses, nRequired);
-
-			        BOOST_FOREACH(const CTxDestination& addr, vAddresses)
+			        if (txout.nValue / 1000000 > 500)
 			        {
-				        const char* pszAddress = CBitcoinAddress(addr).ToString().c_str();
-				        CScript addrHex = CScript() << vector<unsigned char>((const unsigned char*)pszAddress, (const unsigned char*)pszAddress + strlen(pszAddress));
-				        string strSearch = SearchTerm(addrHex.ToString().c_str());
+			            txnouttype type;
+			            vector<CTxDestination> vAddresses;
+			            int nRequired;
+			            ExtractDestinations(txout.scriptPubKey, type, vAddresses, nRequired);
 
-				        if (fAddrMiner(hashLastBlock.GetHex().c_str(), strSearch.c_str()))
-			 	        {
-						    addrCalcMatch = CBitcoinAddress(addr);
-					        fCalcMatch = true;
-					        fMatch = true;
-					    }
-				        else
-				        {
-						    fCalcMatch = false;
-						    fMatch = false;
-					    }
-			        }
+			            BOOST_FOREACH(const CTxDestination& addr, vAddresses)
+			            {
+				            const char* pszAddress = CBitcoinAddress(addr).ToString().c_str();
+				            CScript addrHex = CScript() << vector<unsigned char>((const unsigned char*)pszAddress, (const unsigned char*)pszAddress + strlen(pszAddress));
+				            string strSearch = SearchTerm(addrHex.ToString().c_str());
+
+				            if (fAddrMiner(hashLastBlock.GetHex().c_str(), strSearch.c_str()))
+			 	            {
+						        addrCalcMatch = CBitcoinAddress(addr);
+					            fCalcMatch = true;
+					            fMatch = true;
+					        }
+				            else
+				            {
+						        fCalcMatch = false;
+						        fMatch = false;
+					        }
+			            }
+		            }
 		        }
 		    }
-	    }
-    }
+		    else
+		    {
+		        for (unsigned int i = 0; i < 5; i++)
+		        {
+			        const CTxOut& txout = tx.vout[i];
+
+			        if (txout.nValue / 1000000 > 500)
+			        {
+			            txnouttype type;
+			            vector<CTxDestination> vAddresses;
+			            int nRequired;
+			            ExtractDestinations(txout.scriptPubKey, type, vAddresses, nRequired);
+
+			            BOOST_FOREACH(const CTxDestination& addr, vAddresses)
+			            {
+				            const char* pszAddress = CBitcoinAddress(addr).ToString().c_str();
+				            CScript addrHex = CScript() << vector<unsigned char>((const unsigned char*)pszAddress, (const unsigned char*)pszAddress + strlen(pszAddress));
+				            string strSearch = SearchTerm(addrHex.ToString().c_str());
+
+				            if (fAddrMiner(hashLastBlock.GetHex().c_str(), strSearch.c_str()))
+			 	            {
+						        addrCalcMatch = CBitcoinAddress(addr);
+					            fCalcMatch = true;
+					            fMatch = true;
+					        }
+				            else
+				            {
+						        fCalcMatch = false;
+						        fMatch = false;
+					        }
+			            }
+		            }
+		        }
+			}
+        }
+	}
+	else if (!fMatch && nBlockHeight+1 < 22001 && nBlockHeight > 0)
+	{
+        BOOST_FOREACH (const CTransaction& tx, block.vtx)
+        {
+
+            for (unsigned int i = 0; i < tx.vout.size(); i++)
+            {
+	            const CTxOut& txout = tx.vout[i];
+
+	            if (txout.nValue / 1000000 > 500)
+	            {
+	                txnouttype type;
+	                vector<CTxDestination> vAddresses;
+	                int nRequired;
+	                ExtractDestinations(txout.scriptPubKey, type, vAddresses, nRequired);
+
+	                BOOST_FOREACH(const CTxDestination& addr, vAddresses)
+	                {
+		                const char* pszAddress = CBitcoinAddress(addr).ToString().c_str();
+		                CScript addrHex = CScript() << vector<unsigned char>((const unsigned char*)pszAddress, (const unsigned char*)pszAddress + strlen(pszAddress));
+		                string strSearch = SearchTerm(addrHex.ToString().c_str());
+
+		                if (fAddrMiner(hashLastBlock.GetHex().c_str(), strSearch.c_str()))
+	 	                {
+				            addrCalcMatch = CBitcoinAddress(addr);
+			                fCalcMatch = true;
+			                fMatch = true;
+			            }
+		                else
+		                {
+				            fCalcMatch = false;
+				            fMatch = false;
+			            }
+	                }
+                }
+            }
+        }
+	}
 
     if (nBlockHeight > 0)
     {
@@ -1826,7 +1900,33 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 	if (vtx[0].GetValueOut() > nReward)
 	    return DoS(50, error("ConnectBlock() : coinbase reward exceeded (actual=%"PRI64d" vs calculated=%"PRI64d") at Height=%d", vtx[0].GetValueOut(), nReward, pindex->pprev->nHeight+1));
 
-    if (pindex->pprev->nHeight+1 > 12400 && !pindex->IsProofOfStake() && !pindex->pprev->IsProofOfStake() && (pindex->GetBlockTime() - pindex->pprev->GetBlockTime()) < 300 && vtx.size() < 6)
+	if (vtx[0].vout.size() > 1)
+	    printf("ACCEPTED proof-of-transaction block at height %d/n", pindex->pprev->nHeight+1);
+
+    if (pindex->pprev->nHeight+1 > 22000 && !pindex->IsProofOfStake() && !pindex->pprev->IsProofOfStake() && vtx.size() < 11)
+    {
+        std::vector < boost::tuple<unsigned int, int64, CBitcoinAddress> > vTrans;
+	    for(unsigned int i = 0; i < vtx[0].vout.size(); i++)
+	    {
+	        const CTxOut& txout = vtx[0].vout[i];
+	        txnouttype type;
+	        vector<CTxDestination> vAddresses;
+	        int nRequired;
+	        ExtractDestinations(txout.scriptPubKey, type, vAddresses, nRequired);
+
+	        BOOST_FOREACH(const CTxDestination& addr, vAddresses)
+	        {
+			    boost::tuple<unsigned int, int64, CBitcoinAddress> cTrans = boost::make_tuple(pindex->pprev->nHeight, txout.nValue, CBitcoinAddress(addr));
+	            vTrans.push_back(cTrans);
+	        }
+        }
+
+	    if (!CheckProofOfTxSearch(vTrans))
+	    {
+	         return DoS(50, error("CheckCoinbaseTx() : calculated coinbase %"PRI64d", desination, or address do not match the actual block at height %d\n", nReward, pindex->pprev->nHeight+1));
+	    }
+    }
+    else if (pindex->pprev->nHeight+1 > 12400 && pindex->pprev->nHeight+1 < 22001 && !pindex->IsProofOfStake() && !pindex->pprev->IsProofOfStake() && (pindex->GetBlockTime() - pindex->pprev->GetBlockTime()) < 300 && vtx.size() < 6)
     {
         std::vector < boost::tuple<unsigned int, int64, CBitcoinAddress> > vTrans;
 	    for(unsigned int i = 0; i < vtx[0].vout.size(); i++)
@@ -2331,7 +2431,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     else
     {
 	    // Check coinbase reward is not 0
-	    if (vtx[0].GetValueOut() == 0 && GetHash() != hashGenesisBlock)
+	    if (vtx[0].GetValueOut() == 0 && GetHash() != hashGenesisBlock && GetHash() != hashGenesisBlockTestNet)
 	        return DoS(50, error("CheckBlock() : 0 value block bad chain (actual=%"PRI64d")", vtx[0].GetValueOut()));
     }
 
@@ -3260,14 +3360,14 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return false;
         }
 
-        if(nTime > 1395165600) // Tue, 18 Mar 2014 18:00:00 GMT
+        if(nTime > 1396310400) // Tue, 18 Mar 2014 18:00:00 GMT
 		{
-		    if(pfrom->nVersion < 70004)
+		    if(pfrom->nVersion < 70005)
 		        badVersion = true;
         }
         else
         {
-            if(pfrom->nVersion < 70003)
+            if(pfrom->nVersion < 70004)
                 badVersion = true;
         }
 
