@@ -967,27 +967,26 @@ int64 GetProofOfWorkReward(unsigned int nHeight, uint256 hashSeed)
 		int nMinSubsidy = 500;
 		int nFlatSubsidy = 5000;
 
+        // doubled the reward to compensate for 2 minute blocks
 		if (nHeight > 3295 && nHeight < 22001)
 		{
 		    nMaxSubsidy = nMaxSubsidy*2;
 		    nMinSubsidy = nMinSubsidy*2;
 	    }
 
-		if (nHeight < 22001) // 7 years of random blocks
+        // the random reward era,
+		if (nHeight <= 22000)
 		{
-			nMaxSubsidy >>= (nHeight / 262800); // Max subsidy halves yearly
-			nMinSubsidy >>= (nHeight / 262800); // Min subsidy halves yearly
+			nMaxSubsidy >>= (nHeight / 262800);
+			nMinSubsidy >>= (nHeight / 262800);
 			nBlockValue = StartDigging(lSeed, nMinSubsidy, nMaxSubsidy);
 		}
 
-	    if (nHeight < 1839600 && nHeight > 22000) // 7 years of random blocks
+        // static rewards halved yearly, forever...
+	    if (nHeight > 22000)
 		{
-            nFlatSubsidy >>= (nHeight / 262800); // Max subsidy halves yearly
+            nFlatSubsidy >>= (nHeight / 262800);
             nBlockValue = nFlatSubsidy;
-		}
-		else if (nHeight >= 1839600)
-		{
-			nBlockValue = 50; // reward of 50 coins for life
 		}
 
 		nSubsidy = nBlockValue * COIN;
@@ -1901,7 +1900,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 	    return DoS(50, error("ConnectBlock() : coinbase reward exceeded (actual=%"PRI64d" vs calculated=%"PRI64d") at Height=%d", vtx[0].GetValueOut(), nReward, pindex->pprev->nHeight+1));
 
 	if (vtx[0].vout.size() > 1)
-	    printf("ACCEPTED proof-of-transaction block at height %d/n", pindex->pprev->nHeight+1);
+	    printf("ACCEPTED: proof-of-transaction block at height %d\n", pindex->pprev->nHeight+1);
 
     if (pindex->pprev->nHeight+1 > 22000 && !pindex->IsProofOfStake() && !pindex->pprev->IsProofOfStake() && vtx.size() < 11)
     {
@@ -1923,7 +1922,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
 	    if (!CheckProofOfTxSearch(vTrans))
 	    {
-	         return DoS(50, error("CheckCoinbaseTx() : calculated coinbase %"PRI64d", desination, or address do not match the actual block at height %d\n", nReward, pindex->pprev->nHeight+1));
+	         return DoS(50, error("CheckCoinbaseTx() : calculated coinbase %"PRI64d", desination, or address do not match the actual block %d\n", nReward, pindex->pprev->nHeight+1));
 	    }
     }
     else if (pindex->pprev->nHeight+1 > 12400 && pindex->pprev->nHeight+1 < 22001 && !pindex->IsProofOfStake() && !pindex->pprev->IsProofOfStake() && (pindex->GetBlockTime() - pindex->pprev->GetBlockTime()) < 300 && vtx.size() < 6)
@@ -1946,7 +1945,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
 	    if (!CheckProofOfTxSearch(vTrans))
 	    {
-	         return DoS(50, error("CheckCoinbaseTx() : calculated coinbase, desination, or address do not match the actual block at height %"PRI64d"\n", pindex->pprev->nHeight+1));
+	         return DoS(50, error("CheckCoinbaseTx() : calculated coinbase %"PRI64d", desination, or address do not match the actual block %d\n", nReward, pindex->pprev->nHeight+1));
 	    }
     }
     else if (pindex->pprev->nHeight+1 <= 12400 && !pindex->IsProofOfStake() && !pindex->pprev->IsProofOfStake())
@@ -1969,7 +1968,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
         if (!CheckProofOfTxSearch(vTrans))
 		{
-		    return DoS(50, error("CheckCoinbaseTx() : calculated coinbase, desination, or address do not match the actual block at height %"PRI64d"\n", pindex->pprev->nHeight+1));
+		    return DoS(50, error("CheckCoinbaseTx() : calculated coinbase %"PRI64d", desination, or address do not match the actual block %d\n", nReward, pindex->pprev->nHeight+1));
 	    }
 	}
 
@@ -1987,6 +1986,7 @@ bool static Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
     // Find the fork
     CBlockIndex* pfork = pindexBest;
     CBlockIndex* plonger = pindexNew;
+
     while (pfork != plonger)
     {
         while (plonger->nHeight > pfork->nHeight)
@@ -2433,6 +2433,9 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 	    // Check coinbase reward is not 0
 	    if (vtx[0].GetValueOut() == 0 && GetHash() != hashGenesisBlock && GetHash() != hashGenesisBlockTestNet)
 	        return DoS(50, error("CheckBlock() : 0 value block bad chain (actual=%"PRI64d")", vtx[0].GetValueOut()));
+
+	    if (GetHash() == hashBadBlock15553)
+	        return DoS(50, error("CheckBlock() : Block 15553 is a bad chain"));
     }
 
 
@@ -2478,6 +2481,8 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
 bool CBlock::AcceptBlock()
 {
+	if (GetHash() == hashBadBlock15553)
+	    return error("AcceptBlock() : 15553 is on a forked chain ignoring");
     // Check for duplicate
     uint256 hash = GetHash();
     if (mapBlockIndex.count(hash))
@@ -3326,6 +3331,13 @@ unsigned char pchMessageStart[4] = { 0xcf, 0xd1, 0xe8, 0xea };
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 {
+	if (pfrom->nStartingHeight == 15553)
+	{
+	    printf("partner %s on a forked chain 15553 version %i; disconnecting\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
+	    pfrom->Misbehaving(100);
+	    pfrom->fDisconnect = true;
+	}
+
     static map<CService, CPubKey> mapReuseKey;
     RandAddSeedPerfmon();
     if (fDebug)
@@ -3455,7 +3467,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             (pfrom->nStartingHeight > (nBestHeight - 144)) &&
             (pfrom->nVersion < NOBLKS_VERSION_START ||
              pfrom->nVersion >= NOBLKS_VERSION_END) &&
-             (nAskedForBlocks < 1 || vNodes.size() <= 1))
+             (nAskedForBlocks < 1 || vNodes.size() <= 1) && (pfrom->nStartingHeight != 15553)) // don't download from fork 15553
         {
             nAskedForBlocks++;
             pfrom->PushGetBlocks(pindexBest, uint256(0));

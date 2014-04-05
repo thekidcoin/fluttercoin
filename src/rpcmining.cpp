@@ -60,7 +60,7 @@ Value getmininginfo(const Array& params, bool fHelp)
 
     obj.push_back(Pair("blockvalue",    (uint64_t)GetProofOfWorkReward(GetLastBlockIndex(pindexBest, false)->nHeight+1, GetLastBlockIndex(pindexBest, false)->GetBlockHash())));
     obj.push_back(Pair("netmhashps",     GetPoWMHashPS()));
-    //obj.push_back(Pair("netstakeweight", GetPoSKernelPS())); temporary disabled thekidcoin
+    obj.push_back(Pair("netstakeweight", GetPoSKernelPS())); //temporary disabled thekidcoin
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     obj.push_back(Pair("pooledtx",      (uint64_t)mempool.size()));
 
@@ -459,7 +459,6 @@ Value getblocktemplate(const Array& params, bool fHelp)
     result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
     result.push_back(Pair("transactions", transactions));
     result.push_back(Pair("coinbaseaux", aux));
-    //result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].vout[0].nValue));
 
     if (pblock->vtx[0].vout.size() > 1)
     {
