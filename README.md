@@ -14,17 +14,19 @@ Random Proof-Of-Work Mining (POW) Rewards (halving every 262,800 blocks)
              MAX  MIN
     Block 1 - 3263: Random 500 5000 (1 minute blocks)
     Block 3264 - 22000: Random 1000 10000 (Begin 2 minute blocks)
-    Year 1:  5000.00
-    Year 2:  2500.00
-    Year 3:  1250.00
-    Year 4:  625.00
-    Year 5:  312.50
-    Year 6:  156.25
-    Year 7:  78.125
-    Year 8 on: 50
+    Block 22001 - 34750: Static reward 5000
+    Block 34751 - 39791: Static reward 2500
+    Block 39792 - 44832: Static reward 1250
+    Block 44833 - 49873: Static reward 625
+    Block 49874 - 54914: Static reward 312.50
+    Block 54915 - 59955: Static reward 156.25
+    Block 59956 - 64996: Static reward 78.125
+    Block 64997 - 70037: Static reward 39.0625
+    Block 70038 - 332838: static reward 20
+    Halving every 262800 blocks
 
 	
-There is no maximum number of coins, proof of work for the first 7 years is roughly a maximum 2.6 billion FLT.
+There is no maximum number of coins, through the estimated coinbase size will be roughly 225 million FLT.
 
 Proof-Of-Stake Mining (POS) - variable interest based on coin age
 
@@ -43,7 +45,7 @@ If you wish to build manually:
 
 Build Dependencies - Please to not use other versions
 
-- "openssl-1.0.1f.tar.gz"
+- "openssl-1.0.1g.tar.gz"
 - "db-6.0.20.NC.tar.gz"
 - "miniupnpc-1.8.tar.gz"
 - "zlib-1.2.8.tar.gz"
