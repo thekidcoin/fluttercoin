@@ -21,8 +21,8 @@ files:
 - "qt-win64-4.8.3-gitian-r2.zip"
 - "boost-win32-1.55.0-gitian-r6.zip"
 - "boost-win64-1.55.0-gitian-r6.zip"
-- "fluttercoin-deps-win32-gitian-r10.zip"
-- "fluttercoin-deps-win64-gitian-r10.zip"
+- "fluttercoin-deps-win32-gitian-r11.zip"
+- "fluttercoin-deps-win64-gitian-r11.zip"
 - "protobuf-win32-2.5.0-gitian-r4.zip"
 - "protobuf-win64-2.5.0-gitian-r4.zip"
 script: |
@@ -41,7 +41,7 @@ script: |
     cd $STAGING
     unzip ../build/qt-win${BITS}-4.8.3-gitian-r2.zip
     unzip ../build/boost-win${BITS}-1.55.0-gitian-r6.zip
-    unzip ../build/fluttercoin-deps-win${BITS}-gitian-r10.zip
+    unzip ../build/fluttercoin-deps-win${BITS}-gitian-r11.zip
     export PATH=$STAGING/host/bin:$PATH
     cp -Rf $HOME/build/fluttercoin $HOME/build/fluttercoin${BITS}
     cd $HOME/build/fluttercoin${BITS}

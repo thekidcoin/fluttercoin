@@ -43,7 +43,7 @@ CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 16);
 
 unsigned int nStakeMinAge = 60 * 60 * 24 * 30; // 30 days as zero time weight
 unsigned int nStakeMaxAge = 60 * 60 * 24 * 90; // 90 days as full weight
-unsigned int nStakeTargetSpacing = 2 * 60; // 1-minute stakes spacing
+unsigned int nStakeTargetSpacing = 2 * 60; // 2-minute stakes spacing
 unsigned int nModifierInterval = 4 * 60 * 60; // time to elapse before new modifier is computed
 
 int nCoinbaseMaturity = 12;
@@ -957,8 +957,7 @@ int static StartDigging(unsigned int seed, int minreward, int maxreward)
 
 int64 GetProofOfWorkReward(unsigned int nHeight, uint256 hashSeed)
 {
-		int64 nSubsidy = 0 * COIN;
-
+		int64 nSubsidy = 0;
 		std::string strHash = hashSeed.ToString().substr(6,7);
 		const char* chSeed = strHash.c_str();
 		long lSeed = ConvertLong(chSeed);
@@ -977,21 +976,35 @@ int64 GetProofOfWorkReward(unsigned int nHeight, uint256 hashSeed)
         // the random reward era,
 		if (nHeight <= 22000)
 		{
-			nMaxSubsidy >>= (nHeight / 262800);
-			nMinSubsidy >>= (nHeight / 262800);
 			nBlockValue = StartDigging(lSeed, nMinSubsidy, nMaxSubsidy);
+			return nBlockValue * COIN;
 		}
 
-        // static rewards halved yearly, forever...
-	    if (nHeight > 22000)
+	    if (nHeight > 22000 && nHeight <= 34750)
 		{
-            nFlatSubsidy >>= (nHeight / 262800);
-            nBlockValue = nFlatSubsidy;
+			nSubsidy = 5000;
+			return nSubsidy * COIN;
 		}
 
-		nSubsidy = nBlockValue * COIN;
+		if (nHeight > 34750 && nHeight <= 70037)
+	    {
+			nSubsidy = 2500;
 
-     	return nSubsidy;
+			unsigned int nHeightTemp = nHeight - 34750;
+			nSubsidy >>= (nHeightTemp / 5040);
+			return nSubsidy * COIN;
+		}
+
+		if (nHeight > 70037)
+	    {
+            nSubsidy = 20;
+
+            unsigned int nHeightTemp = nHeight - 70037;
+			nSubsidy >>= (nHeightTemp / 262800);
+			return nSubsidy * COIN;
+		}
+
+     	return nSubsidy * COIN;
 }
 
 
@@ -1040,10 +1053,13 @@ int64 GetProofOfStakeReward(int64 nCoinAge, unsigned int nBits, unsigned int nTi
     // Set reasonable reward limit for large inputs
     // This will stimulate large holders to use smaller inputs, that's good for the network protection
 
-    if (fDebug && GetBoolArg("-printcreation") && nSubsidyLimit < nSubsidy)
-        printf("GetProofOfStakeReward(): %s is greater than %s, coinstake reward will be truncated\n", FormatMoney(nSubsidy).c_str(), FormatMoney(nSubsidyLimit).c_str());
+    if(nTime < FORK_FINAL)
+    {
+        if (fDebug && GetBoolArg("-printcreation") && nSubsidyLimit < nSubsidy)
+            printf("GetProofOfStakeReward(): %s is greater than %s, coinstake reward will be truncated\n", FormatMoney(nSubsidy).c_str(), FormatMoney(nSubsidyLimit).c_str());
 
-    nSubsidy = min(nSubsidy, nSubsidyLimit);
+        nSubsidy = min(nSubsidy, nSubsidyLimit);
+    }
 
     if (fDebug && GetBoolArg("-printcreation"))
         printf("GetProofOfStakeReward(): create=%s nCoinAge=%"PRI64d" nBits=%d\n", FormatMoney(nSubsidy).c_str(), nCoinAge, nBits);
@@ -1561,8 +1577,8 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 
 string SearchTerm(const char *chAddress)
 {
-	int nLength = strlen(chAddress);
-	return string(&chAddress[nLength-3], 3);
+    int nLength = strlen(chAddress);
+    return string(&chAddress[nLength-3], 3);
 }
 
 
@@ -1698,7 +1714,11 @@ bool CheckProofOfTxSearch(std::vector<boost::tuple<unsigned int, int64, CBitcoin
 			}
         }
 	}
-	else if (!fMatch && nBlockHeight+1 < 22001 && nBlockHeight > 0)
+
+
+
+
+	if (!fMatch && nBlockHeight+1 < 22001 && nBlockHeight > 0)
 	{
         BOOST_FOREACH (const CTransaction& tx, block.vtx)
         {
@@ -3227,8 +3247,8 @@ bool LoadExternalBlockFile(FILE* fileIn)
 extern map<uint256, CAlert> mapAlerts;
 extern CCriticalSection cs_mapAlerts;
 
-extern string strMintMessage;
-extern string strMintWarning;
+//extern string strMintMessage;
+//extern string strMintWarning;
 
 string GetWarnings(string strFor)
 {
@@ -3240,11 +3260,11 @@ string GetWarnings(string strFor)
         strRPC = "test";
 
     // wallet lock warning for minting
-    if (strMintWarning != "")
-    {
-        nPriority = 0;
-        strStatusBar = strMintWarning;
-    }
+    //if (strMintWarning != "")
+    //{
+    //    nPriority = 0;
+    //   strStatusBar = strMintWarning;
+    //}
 
     // Misc warnings like out of disk space and clock is wrong
     if (strMiscWarning != "")
@@ -3372,14 +3392,14 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return false;
         }
 
-        if(nTime > 1396310400) // Tue, 18 Mar 2014 18:00:00 GMT
+        if(nTime > FORK_FINAL) // Sat, 19 Apr 2014 19:48:23 GMT
 		{
-		    if(pfrom->nVersion < 70005)
+		    if(pfrom->nVersion < 70007)
 		        badVersion = true;
         }
         else
         {
-            if(pfrom->nVersion < 70004)
+            if(pfrom->nVersion < 70005)
                 badVersion = true;
         }
 
@@ -3390,8 +3410,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return false;
         }
 
-        if (pfrom->nVersion == 10300)
-            pfrom->nVersion = 300;
         if (!vRecv.empty())
             vRecv >> addrFrom >> nNonce;
         if (!vRecv.empty())
@@ -3411,13 +3429,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             printf("connected to self at %s, disconnecting\n", pfrom->addr.ToString().c_str());
             pfrom->fDisconnect = true;
             return true;
-        }
-
-        if (pfrom->nVersion < 70002)
-		{
-		    printf("partner %s using a buggy client %d, disconnecting\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
-		    pfrom->fDisconnect = true;
-		    return true;
         }
 
         // record my external IP reported by peer

@@ -8,7 +8,7 @@ USE_IPV6:=1
 INCLUDEPATHS= \
  -I"C:\boost-1.55.0-mgw" \
  -I"C:\db-6.0.20.NC-mgw\build_unix" \
- -I"C:\openssl-1.0.1f-mgw\include"
+ -I"C:\openssl-1.0.1g-mgw\include"
 
 LIBPATHS= \
  -L"C:\boost-1.55.0-mgw\stage\lib" \

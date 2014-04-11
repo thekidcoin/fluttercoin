@@ -39,6 +39,7 @@ static const int64 MAX_MINT_PROOF_OF_WORK = 10000 * COIN;
 static const int64 MAX_MINT_PROOF_OF_STAKE = 1 * COIN;
 static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 static const unsigned int ENTROPY_SWITCH_TIME = 1420070399; // Dec 31 2014, 23:59:59 PM GMT
+static const unsigned int FORK_FINAL = 1397936903;
 
 string SearchTerm(const char *chAddress);
 bool fAddrMiner (const char *chHash, const char *chTerm);

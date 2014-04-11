@@ -121,7 +121,7 @@ Value importprivkey(const Array& params, bool fHelp)
     bool fGood = vchSecret.SetString(strSecret);
 
     if (!fGood) throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key");
-    if (fWalletUnlockMintOnly) // fluttercoin: no importprivkey in mint-only mode
+    if (fWalletUnlockStakingOnly) // fluttercoin: no importprivkey in mint-only mode
         throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Wallet is unlocked for minting only.");
 
     CKey key;
@@ -243,7 +243,7 @@ Value dumpprivkey(const Array& params, bool fHelp)
     CBitcoinAddress address;
     if (!address.SetString(strAddress))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid FlutterCoin address");
-    if (fWalletUnlockMintOnly) // fluttercoin: no dumpprivkey in mint-only mode
+    if (fWalletUnlockStakingOnly) // fluttercoin: no dumpprivkey in mint-only mode
         throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Wallet is unlocked for minting only.");
     CKeyID keyID;
     if (!address.GetKeyID(keyID))

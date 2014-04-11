@@ -14,7 +14,7 @@ packages:
 reference_datetime: "2011-01-30 00:00:00"
 remotes: []
 files:
-- "openssl-1.0.1f.tar.gz"
+- "openssl-1.0.1g.tar.gz"
 - "db-6.0.20.NC.tar.gz"
 - "miniupnpc-1.8.tar.gz"
 - "zlib-1.2.8.tar.gz"
@@ -27,7 +27,7 @@ script: |
   export TZ=UTC
   INDIR=$HOME/build
   # Input Integrity Check
-  echo "6cc2a80b17d64de6b7bac985745fdaba971d54ffd7d38d3556f998d7c0c9cb5a  openssl-1.0.1f.tar.gz"  | sha256sum -c
+  echo "53cb818c3b90e507a8348f4f5eaedb05d8bfe5358aabb508b7263cc670c3e028  openssl-1.0.1g.tar.gz"  | sha256sum -c
   echo "bbf7752f1a64514bf7b8b37bd451a3af7d691d1f96829d54fa6e8cf2d786dfe5  db-6.0.20.NC.tar.gz"    | sha256sum -c
   echo "bc5f73c7b0056252c1888a80e6075787a1e1e9112b808f863a245483ff79859c  miniupnpc-1.8.tar.gz"   | sha256sum -c
   echo "36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d  zlib-1.2.8.tar.gz"      | sha256sum -c
@@ -47,8 +47,8 @@ script: |
     mkdir -p $INSTALLPREFIX $BUILDDIR
     cd $BUILDDIR
     #
-    tar xzf $INDIR/openssl-1.0.1f.tar.gz
-    cd openssl-1.0.1f
+    tar xzf $INDIR/openssl-1.0.1g.tar.gz
+    cd openssl-1.0.1g
     if [ "$BITS" == "32" ]; then
       OPENSSL_TGT=mingw
     else
@@ -113,5 +113,5 @@ script: |
     cd ..
     #
     cd $INSTALLPREFIX
-    zip -r $OUTDIR/fluttercoin-deps-win$BITS-gitian-r10.zip include lib
+    zip -r $OUTDIR/fluttercoin-deps-win$BITS-gitian-r11.zip include lib
   done # for BITS in
