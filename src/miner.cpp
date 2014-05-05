@@ -135,7 +135,97 @@ ProofOfTx ProofOfTxSearch(unsigned int nBlockHeight, CReserveKey pubKey)
 	CMerkleTx txGen(block.vtx[0]);
 	txGen.SetMerkleBranch(&block);
 
-    if (!fMatch && nBlockHeight+1 > 22000 && block.vtx.size() < 11)
+    if (!fMatch && nBlockHeight+1 > 55000 && block.vtx.size() <= 20)
+	{
+        BOOST_FOREACH (const CTransaction& tx, block.vtx)
+        {
+		    if (tx.vout.size() <= 3)
+		    {
+		        for (unsigned int i = 0; i < tx.vout.size(); i++)
+			    {
+				   const CTxOut& txout = tx.vout[i];
+
+				   if (txout.nValue / 1000000.00 > 1)
+				   {
+				       txnouttype type;
+				       vector<CTxDestination> vAddresses;
+				       int nRequired;
+
+				       ExtractDestinations(txout.scriptPubKey, type, vAddresses, nRequired);
+
+				       BOOST_FOREACH(const CTxDestination& addr, vAddresses)
+				       {
+					       const char* pszAddress = CBitcoinAddress(addr).ToString().c_str();
+					       CScript addrHex = CScript() << vector<unsigned char>((const unsigned char*)pszAddress, (const unsigned char*)pszAddress + strlen(pszAddress));
+					       string strSearch = SearchTermV2(addrHex.ToString().c_str());
+
+					       if (fAddrMiner(hashLastBlock.GetHex().c_str(), strSearch.c_str()))
+				 	       {
+							   addrMiner = CBitcoinAddress(addr);
+						       fMatch = true;
+						   }
+					       else
+					       {
+							   fMatch = false;
+							   CKeyID keyID = pubKey.GetReservedKey().GetID();
+					           addrMiner.Set(keyID);
+                           }
+				       }
+			       }
+			    }
+		    }
+		    else
+		    {
+				unsigned int iv = 0;
+				if (tx.vout.size() > 10)
+				    iv = 10;
+				else
+				    iv = tx.vout.size();
+
+		        for (unsigned int i = 0; i < iv; i++)
+			    {
+				   const CTxOut& txout = tx.vout[i];
+
+				   if (txout.nValue / 1000000.00 > 1)
+				   {
+				       txnouttype type;
+				       vector<CTxDestination> vAddresses;
+				       int nRequired;
+
+				       ExtractDestinations(txout.scriptPubKey, type, vAddresses, nRequired);
+
+				       BOOST_FOREACH(const CTxDestination& addr, vAddresses)
+				       {
+					       const char* pszAddress = CBitcoinAddress(addr).ToString().c_str();
+					       CScript addrHex = CScript() << vector<unsigned char>((const unsigned char*)pszAddress, (const unsigned char*)pszAddress + strlen(pszAddress));
+					       string strSearch = SearchTerm(addrHex.ToString().c_str());
+
+					       if (fAddrMiner(hashLastBlock.GetHex().c_str(), strSearch.c_str()))
+				 	       {
+							   addrMiner = CBitcoinAddress(addr);
+						       fMatch = true;
+						   }
+					       else
+					       {
+							   fMatch = false;
+							   CKeyID keyID = pubKey.GetReservedKey().GetID();
+					           addrMiner.Set(keyID);
+                           }
+				       }
+			       }
+			    }
+			}
+        }
+    }
+    else if (!fMatch && nBlockHeight+1 > 55000 && block.vtx.size() > 20)
+    {
+		CKeyID keyID = pubKey.GetReservedKey().GetID();
+	    addrMiner.Set(keyID);
+
+        return boost::make_tuple(false, addrMiner);
+	}
+
+    else if (!fMatch && nBlockHeight+1 > 22000 && nBlockHeight+1 <= 55000 && block.vtx.size() < 11)
 	{
         BOOST_FOREACH (const CTransaction& tx, block.vtx)
         {
@@ -211,7 +301,7 @@ ProofOfTx ProofOfTxSearch(unsigned int nBlockHeight, CReserveKey pubKey)
 			}
         }
     }
-    else if (!fMatch && nBlockHeight+1 > 22000 && block.vtx.size() > 10)
+    else if (!fMatch && nBlockHeight+1 > 22000 && nBlockHeight+1 <= 55000 && block.vtx.size() > 10)
     {
 		CKeyID keyID = pubKey.GetReservedKey().GetID();
 	    addrMiner.Set(keyID);
@@ -577,7 +667,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
         if (fDebug && GetBoolArg("-printpriority"))
             printf("CreateNewBlock(): total size %"PRI64u"\n", nBlockSize);
 
-        if (!fProofOfStake)
+        if (!fProofOfStake && nBlockHeight+1 <= 55000)
         {
 			if (!fMatch)
 			    pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight+1, pindexPrev->GetBlockHash());
@@ -585,6 +675,16 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
             {
             	pblock->vtx[0].vout[0].nValue = (GetProofOfWorkReward(pindexPrev->nHeight+1, pindexPrev->GetBlockHash())/2);
             	pblock->vtx[0].vout[1].nValue = (GetProofOfWorkReward(pindexPrev->nHeight+1, pindexPrev->GetBlockHash())/2);
+			}
+		}
+		else if (!fProofOfStake && nBlockHeight+1 > 55000)
+		{
+		    if (!fMatch)
+			    pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight+1, pindexPrev->GetBlockHash());
+		    else
+		    {
+		        pblock->vtx[0].vout[0].nValue = (GetProofOfWorkReward(pindexPrev->nHeight+1, pindexPrev->GetBlockHash())*0.95);
+		        pblock->vtx[0].vout[1].nValue = (GetProofOfWorkReward(pindexPrev->nHeight+1, pindexPrev->GetBlockHash())*0.05);
 			}
 		}
 

@@ -42,6 +42,7 @@ static const unsigned int ENTROPY_SWITCH_TIME = 1420070399; // Dec 31 2014, 23:5
 static const unsigned int FORK_FINAL = 1397936903;
 
 string SearchTerm(const char *chAddress);
+string SearchTermV2(const char *chAddress);
 bool fAddrMiner (const char *chHash, const char *chTerm);
 
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
