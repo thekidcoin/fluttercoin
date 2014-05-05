@@ -135,7 +135,7 @@ ProofOfTx ProofOfTxSearch(unsigned int nBlockHeight, CReserveKey pubKey)
 	CMerkleTx txGen(block.vtx[0]);
 	txGen.SetMerkleBranch(&block);
 
-    if (!fMatch && nBlockHeight+1 > 55000 && block.vtx.size() <= 20)
+    if (!fMatch && nBlockHeight+1 > 57000 && block.vtx.size() <= 20)
 	{
         BOOST_FOREACH (const CTransaction& tx, block.vtx)
         {
@@ -217,7 +217,7 @@ ProofOfTx ProofOfTxSearch(unsigned int nBlockHeight, CReserveKey pubKey)
 			}
         }
     }
-    else if (!fMatch && nBlockHeight+1 > 55000 && block.vtx.size() > 20)
+    else if (!fMatch && nBlockHeight+1 > 57000 && block.vtx.size() > 20)
     {
 		CKeyID keyID = pubKey.GetReservedKey().GetID();
 	    addrMiner.Set(keyID);
@@ -225,7 +225,7 @@ ProofOfTx ProofOfTxSearch(unsigned int nBlockHeight, CReserveKey pubKey)
         return boost::make_tuple(false, addrMiner);
 	}
 
-    else if (!fMatch && nBlockHeight+1 > 22000 && nBlockHeight+1 <= 55000 && block.vtx.size() < 11)
+    else if (!fMatch && nBlockHeight+1 > 22000 && nBlockHeight+1 <= 57000 && block.vtx.size() < 11)
 	{
         BOOST_FOREACH (const CTransaction& tx, block.vtx)
         {
@@ -301,7 +301,7 @@ ProofOfTx ProofOfTxSearch(unsigned int nBlockHeight, CReserveKey pubKey)
 			}
         }
     }
-    else if (!fMatch && nBlockHeight+1 > 22000 && nBlockHeight+1 <= 55000 && block.vtx.size() > 10)
+    else if (!fMatch && nBlockHeight+1 > 22000 && nBlockHeight+1 <= 57000 && block.vtx.size() > 10)
     {
 		CKeyID keyID = pubKey.GetReservedKey().GetID();
 	    addrMiner.Set(keyID);
@@ -667,7 +667,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
         if (fDebug && GetBoolArg("-printpriority"))
             printf("CreateNewBlock(): total size %"PRI64u"\n", nBlockSize);
 
-        if (!fProofOfStake && nBlockHeight+1 <= 55000)
+        if (!fProofOfStake && nBlockHeight+1 <= 57000)
         {
 			if (!fMatch)
 			    pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight+1, pindexPrev->GetBlockHash());
@@ -677,7 +677,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
             	pblock->vtx[0].vout[1].nValue = (GetProofOfWorkReward(pindexPrev->nHeight+1, pindexPrev->GetBlockHash())/2);
 			}
 		}
-		else if (!fProofOfStake && nBlockHeight+1 > 55000)
+		else if (!fProofOfStake && nBlockHeight+1 > 57000)
 		{
 		    if (!fMatch)
 			    pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight+1, pindexPrev->GetBlockHash());
