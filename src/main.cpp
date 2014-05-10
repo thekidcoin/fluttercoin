@@ -171,10 +171,10 @@ void static Inventory(const uint256& hash)
 }
 
 // ask wallets to resend their transactions
-void ResendWalletTransactions()
+void ResendWalletTransactions(bool fForce)
 {
     BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->ResendWalletTransactions();
+        pwallet->ResendWalletTransactions(fForce);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1856,7 +1856,7 @@ bool CheckProofOfTxSearch(std::vector<boost::tuple<unsigned int, int64, CBitcoin
 		        if (fCalcMatch != fActMatch)
 			        return false;
 
-		        if (nCalcValue != (nActValue + (nCalcValue*0.05)) || nCalcValue != (nActValue + (nCalcValue*0.95)))
+		        if ((nCalcValue/100)*5 != nActValue)
 			        return false;
 
 		        if (addrCalcMatch.ToString() != addrActMatch.ToString())
@@ -3511,9 +3511,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return false;
         }
 
-        if(nTime > 1400068800) // Wed, 14 May 2014 12:00:00 GMT
+        if(nTime > 1400198400) // Fri, 16 May 2014 00:00:00 GMT
 		{
-		    if(pfrom->nVersion < 70008)
+		    if(pfrom->nVersion < 70009)
 		        badVersion = true;
         }
         else
